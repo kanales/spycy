@@ -6,7 +6,7 @@ import functools
 import itertools
 import operator
 from collections import deque
-from spycy import SpicyFunction
+from spycy import spice
 
 # FUNCTIONS
 def pipe(*funcs):
@@ -44,12 +44,12 @@ def pipe(*funcs):
 #        function -- This function is equivalent to the input function with
 #        reversed arguments.
 #    """
-#    @SpicyFunction
+#    @spice
 #    def inner(*args):
 #        return func(*reversed(args))
 #
 #    return inner
-#flip_ = SpicyFunction(flip)
+#flip_ = spice(flip)
 
 
 def negate(pred):
@@ -66,12 +66,12 @@ def negate(pred):
         function -- Evaluating the return function is equivalent to evaluating
         each function with the output of the preceding function.
     """
-    @SpicyFunction
+    @spice
     def negated_predicate(x):
         return not pred(x)
 
     return negated_predicate
-negate_ = SpicyFunction(negate)
+negate_ = spice(negate)
 
 # UTILITIES
 
@@ -87,14 +87,14 @@ def odd(x):
         bool -- True if x is odd False otherwise.
     """
     return x&1
-odd_ = SpicyFunction(odd)
+odd_ = spice(odd)
 
 def even(x):
     """
     See :func:`~spycy.utils.odd`
     """
     return not odd(x)
-even_ = SpicyFunction(even)
+even_ = spice(even)
 
 def positive(x):
     """
@@ -107,7 +107,7 @@ def positive(x):
         bool -- True if x > 0 False otherwise.
     """
     return x > 0
-positive_ = SpicyFunction(positive)
+positive_ = spice(positive)
 
 def negative(x):
     """
@@ -120,16 +120,16 @@ def negative(x):
         bool -- True if x < 0 False otherwise.
     """
     return x < 0
-negative_ = SpicyFunction(negative)
+negative_ = spice(negative)
 
 # operations
 
 # ITERATORS
-filter_ = SpicyFunction(lambda pred, it: filter(pred, it), name='filter')
+filter_ = spice(lambda pred, it: filter(pred, it), name='filter')
 
-map_ = SpicyFunction(lambda f, it: map(f,it), name='map')
+map_ = spice(lambda f, it: map(f,it), name='map')
 
-reduce_ = SpicyFunction(lambda f, it: functools.reduce(f, it), name='reduce')
+reduce_ = spice(lambda f, it: functools.reduce(f, it), name='reduce')
 
 def partition(pred, it):
     """
@@ -153,7 +153,7 @@ def partition(pred, it):
     it1, it2 = tee(map(lambda x: (x,pred(x)), it))
     return ( (x for p,x in it1 if p)
            , (x for p,x in it2 if not p) )
-partition_ = SpicyFunction(partition)
+partition_ = spice(partition)
 
 def unpack(n, iterator):
     """
@@ -180,7 +180,7 @@ def unpack(n, iterator):
     """
     # it = iter(iterable) # make sure it is an iterator
     return [next(it) for x in range(n)] + [it]
-unpack_ = SpicyFunction(unpack)
+unpack_ = spice(unpack)
 
 def head(iterable):
     """
@@ -196,7 +196,7 @@ def head(iterable):
     """
     it = iter(iterable)
     return next(it)
-head_ = SpicyFunction(head)
+head_ = spice(head)
 
 def tail(iterable):
     """
@@ -211,7 +211,7 @@ def tail(iterable):
         A
     """
     return deque(iterable, maxlen=1)[0] # using deque for C speed
-tail_ = SpicyFunction(tail)
+tail_ = spice(tail)
 
 def cons(x, iterator):
     """
@@ -238,7 +238,7 @@ def cons(x, iterator):
     """
     yield x             # first comes x
     yield from iterator # then come all the other elements
-cons_ = SpicyFunction(cons)
+cons_ = spice(cons)
 
 def chain(*iterators):
     for it in iterators:

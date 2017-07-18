@@ -1,23 +1,26 @@
 import sys
 import types
 from collections.abc import Callable
+from weakref import WeakKeyDictionary
 from inspect import getfullargspec
 
+_instances = WeakKeyDictionary()
 
 class SpicyFunction(Callable):
     """
-        Class that extends the functionality of basic functions to allow:
-            * Composition
-            * Currying
-            * Application that avoids nesting
+    Class that extends the functionality of basic functions to allow:
+        * Composition
+        * Currying
+        * Application that avoids nesting
 
-        Attributes:
-            args: [\*ANY]
-                List of arguments to be applied to the function.
-            func: function
-                Original function.
+    This class should be called using the ``spice`` function rather than direct intantiation.
+
+    Attributes:
+        args: [\*ANY]
+            List of arguments to be applied to the function.
+        func: function
+            Original function.
     """
-    _instances = {}
 
 
     def init(self, func, nargs,args, name, doc):
@@ -35,9 +38,9 @@ class SpicyFunction(Callable):
 
         self.args = args or ()
 
-
     def __init__(self, func, nargs=None, args=None, name=None, doc=None):
         self.init(func, nargs, args, name, doc)
+
 
     def compose(self, other):
         """
@@ -89,3 +92,8 @@ class SpicyFunction(Callable):
             x >> f := f(x)
     """
     __lshift__ = __rrshift__ = __call__
+
+def spice(function, name=None, doc=None):
+    if function not in _instances:
+        _instances[function] = SpicyFunction(function, name=name, doc=doc)
+    return _instances[function]
