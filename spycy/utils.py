@@ -48,6 +48,7 @@ def flip(func):
 
     return inner
 
+@SpicyFunction
 def negate(pred):
     """
     Given a predicate, returns a function that negates the output of the predicate;
@@ -70,6 +71,7 @@ def negate(pred):
 # UTILITIES
 
 # predicates
+@SpicyFunction
 def odd(x):
     """
     :param x:
@@ -82,12 +84,14 @@ def odd(x):
     """
     return x&1
 
+@SpicyFunction
 def even(x):
     """
     See :func:`~spycy.utils.odd`
     """
     return not odd(x)
 
+@SpicyFunction
 def positive(x):
     """
     :param x:
@@ -100,6 +104,7 @@ def positive(x):
     """
     return x > 0
 
+@SpicyFunction
 def negative(x):
     """
     :param x:
@@ -121,16 +126,59 @@ map_ = SpicyFunction(lambda f, it: map(f,it), name='map')
 
 reduce_ = SpicyFunction(lambda f, it: functools.reduce(f, it), name='reduce')
 
+@SpicyFunction
 def partition(pred, it):
+    """
+    Given a predicate, it splits an iterable into two iterators:
+        * The truthy values
+        * The falsy values
+
+    :type pred:
+        function: **A -> bool**
+    :param pred:
+        Predicate used to split the iterable.
+
+    :type it:
+        iterable (A)
+    :param it:
+        Iterable to be split.
+
+    :returns:
+        (A),(A) -- Iterators that split the iterable.
+    """
     it1, it2 = tee(map(lambda x: (x,pred(x)), it))
     return ( (x for p,x in it1 if p)
            , (x for p,x in it2 if not p) )
 partition_ = SpicyFunction(partition)
 
-def unpack(iterable, n):
-    it = iter(iterable) # make sure it is an iterator
+@SpicyFunction
+def unpack(n, iterator):
+    """
+    Returns the n first elements of the iterator and then all the rest.
+    Can be useful to unpack iterators without fully evaluating them.
+    WARNING: this can modify the original iterator.
+
+    :Example:
+        ::
+        it = iter([1,2,3,4])
+        x, y, z = unpack(2, iter)
+        # x, y are values; z is an iterator
+
+    :type n:
+        int
+    :param n:
+        Number of elements to be extracted from the iterator
+
+    :type iterator:
+        (A)
+
+    :returns:
+        A, A, ..., (A) -- n values and an iterator with the remaining elements.
+    """
+    # it = iter(iterable) # make sure it is an iterator
     return [next(it) for x in range(n)] + [it]
 
+@SpicyFunction
 def head(iterable):
     """
     Gets the first element of the iterable.
@@ -141,28 +189,59 @@ def head(iterable):
         iterable **(A)**
 
     :returns:
-        **A**
+        A
     """
     it = iter(iterable)
     return next(it)
-head = SpicyFunction(head)
 
+@SpicyFunction
 def tail(iterable):
     """
     Gets the last element of the iterable. WARNING: this consumes the iterable.
 
     :param iterable:
         A non-empty iterable. If it is empty a StopIteration error will be raised
-    :type x:
+    :type iterable:
         iterable **(A)**
 
     :returns:
-        **A**
+        A
     """
     return deque(iterable, maxlen=1)[0] # using deque for C speed
-tail = SpicyFunction(tail)
 
-def n_wise(iterable, n):
+@SpicyFunction
+def cons(x, iterator):
+    """
+    Can be used to insert an element x in the front of an iterator.
+
+    :Example:
+        ::
+        it = iter([1,2])
+        it = cons(0, it)
+        next(it) # 0
+        next(it) # 1
+        next(it) # 2
+
+    :type iterator:
+        (A)
+
+    :type x:
+        A
+    :param x:
+        Value to be inserted to the front of the iterator
+
+    :returns:
+        (A)
+    """
+    yield x             # first comes x
+    yield from iterator # then come all the other elements
+
+def chain(*iterators):
+    for it in iterators:
+        yield from it
+
+
+def n_wise(n, iterable):
     iters = itertools.tee(iterable, n)
 
     times = 0
@@ -174,11 +253,3 @@ def n_wise(iterable, n):
 
 def pairwise(iterable):
     return n_wise(iterable, 2)
-
-def cons(x, iterator):
-    yield x             # first comes x
-    yield from iterator # then come all the other elements
-
-def chain(*iterators):
-    for it in iterators:
-        yield from it
