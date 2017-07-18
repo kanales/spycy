@@ -25,6 +25,7 @@ class SpicyFunction:
         self.args = kwargs.pop('args', ())
         self.func = func
         self.__name__ = kwargs.pop('name', func.__name__)
+        self.__doc__ = func.__doc__
 
     def compose(self, other):
         """
