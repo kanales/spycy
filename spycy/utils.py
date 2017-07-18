@@ -29,26 +29,29 @@ def pipe(*funcs):
         return arg
     return
 
-def flip(func):
-    """
-    Reverses the order of the arguments of a function.
+# TODO
+#
+#def flip(func):
+#    """
+#    Reverses the order of the arguments of a function.
+#
+#    :param func:
+#        Function that will have its arguments reversed.
+#    :type func:
+#        function
+#
+#    :returns:
+#        function -- This function is equivalent to the input function with
+#        reversed arguments.
+#    """
+#    @SpicyFunction
+#    def inner(*args):
+#        return func(*reversed(args))
+#
+#    return inner
+#flip_ = SpicyFunction(flip)
 
-    :param func:
-        Function that will have its arguments reversed.
-    :type func:
-        function
 
-    :returns:
-        function -- This function is equivalent to the input function with
-        reversed arguments.
-    """
-    @functools.wraps(func)
-    def inner(*args):
-        return func(*reversed(args))
-
-    return inner
-
-@SpicyFunction
 def negate(pred):
     """
     Given a predicate, returns a function that negates the output of the predicate;
@@ -63,15 +66,16 @@ def negate(pred):
         function -- Evaluating the return function is equivalent to evaluating
         each function with the output of the preceding function.
     """
+    @SpicyFunction
     def negated_predicate(x):
         return not pred(x)
 
     return negated_predicate
+negate_ = SpicyFunction(negate)
 
 # UTILITIES
 
 # predicates
-@SpicyFunction
 def odd(x):
     """
     :param x:
@@ -83,15 +87,15 @@ def odd(x):
         bool -- True if x is odd False otherwise.
     """
     return x&1
+odd_ = SpicyFunction(odd)
 
-@SpicyFunction
 def even(x):
     """
     See :func:`~spycy.utils.odd`
     """
     return not odd(x)
+even_ = SpicyFunction(even)
 
-@SpicyFunction
 def positive(x):
     """
     :param x:
@@ -103,8 +107,8 @@ def positive(x):
         bool -- True if x > 0 False otherwise.
     """
     return x > 0
+positive_ = SpicyFunction(positive)
 
-@SpicyFunction
 def negative(x):
     """
     :param x:
@@ -116,6 +120,7 @@ def negative(x):
         bool -- True if x < 0 False otherwise.
     """
     return x < 0
+negative_ = SpicyFunction(negative)
 
 # operations
 
@@ -126,7 +131,6 @@ map_ = SpicyFunction(lambda f, it: map(f,it), name='map')
 
 reduce_ = SpicyFunction(lambda f, it: functools.reduce(f, it), name='reduce')
 
-@SpicyFunction
 def partition(pred, it):
     """
     Given a predicate, it splits an iterable into two iterators:
@@ -151,7 +155,6 @@ def partition(pred, it):
            , (x for p,x in it2 if not p) )
 partition_ = SpicyFunction(partition)
 
-@SpicyFunction
 def unpack(n, iterator):
     """
     Returns the n first elements of the iterator and then all the rest.
@@ -177,8 +180,8 @@ def unpack(n, iterator):
     """
     # it = iter(iterable) # make sure it is an iterator
     return [next(it) for x in range(n)] + [it]
+unpack_ = SpicyFunction(unpack)
 
-@SpicyFunction
 def head(iterable):
     """
     Gets the first element of the iterable.
@@ -193,8 +196,8 @@ def head(iterable):
     """
     it = iter(iterable)
     return next(it)
+head_ = SpicyFunction(head)
 
-@SpicyFunction
 def tail(iterable):
     """
     Gets the last element of the iterable. WARNING: this consumes the iterable.
@@ -208,8 +211,8 @@ def tail(iterable):
         A
     """
     return deque(iterable, maxlen=1)[0] # using deque for C speed
+tail_ = SpicyFunction(tail)
 
-@SpicyFunction
 def cons(x, iterator):
     """
     Can be used to insert an element x in the front of an iterator.
@@ -235,6 +238,7 @@ def cons(x, iterator):
     """
     yield x             # first comes x
     yield from iterator # then come all the other elements
+cons_ = SpicyFunction(cons)
 
 def chain(*iterators):
     for it in iterators:

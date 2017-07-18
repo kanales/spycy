@@ -1,9 +1,10 @@
-from inspect import getfullargspec
+import sys
 import types
+from collections.abc import Callable
+from inspect import getfullargspec
 
-__all__ = ['SpicyFunction']
 
-class SpicyFunction:
+class SpicyFunction(Callable):
     """
         Class that extends the functionality of basic functions to allow:
             * Composition
@@ -16,16 +17,27 @@ class SpicyFunction:
             func: function
                 Original function.
     """
-    def __init__(self, func, **kwargs):
-        argspec = getfullargspec(func)
-        self._nargs = kwargs.pop('nargs', len(argspec.args))
+    _instances = {}
+
+
+    def init(self, func, nargs,args, name, doc):
+        self.__wrapped__ = func;
+
+        self._nargs = nargs or len(getfullargspec(func).args)
         if self._nargs == 0:
             raise TypeError("Curried functions must have at least 1 argument")
 
-        self.args = kwargs.pop('args', ())
-        self.func = func
-        self.__name__ = kwargs.pop('name', func.__name__)
-        self.__doc__ = func.__doc__
+        self.__module__ = func.__module__
+        self.__doc__ = doc or func.__doc__
+        self.__name__ = name or func.__name__
+        if self.__name__ == '<lambda>':
+            self.__name__ = '_lambda_'
+
+        self.args = args or ()
+
+
+    def __init__(self, func, nargs=None, args=None, name=None, doc=None):
+        self.init(func, nargs, args, name, doc)
 
     def compose(self, other):
         """
@@ -41,23 +53,23 @@ class SpicyFunction:
         return SpicyFunction(cfunc, nargs=1, name='function_composition')
 
     def __repr__(self):
-        return '<spicy_function {}.{}>'.format(self.func.__module__, self.__name__)
+        return '<spicy_function {}.{}>'.format(self.__module__, self.__name__)
 
-    def __call__(self, *args):
-        new_args = self.args + args # updating arguments
+    def __call__(self, *arguments):
+        new_args = self.args + arguments  # updating arguments
         arglen = len(new_args)
 
         if arglen > self._nargs:
             # Too many arguments provided!
             raise TypeError("{}() takes at most {} arguments ({} given)"
-                                .format(self.func.func_name, self._nargs, arglen))
+                                .format(self.__wrapped__.func_name, self.__nargs, arglen))
 
         if self._nargs == len(new_args):
             # With just the right amount of arguments, the function can be called.
-            return self.func(*new_args)
+            return self.__wrapped__(*new_args)
 
         # Not enough arguments, keep saving them
-        return SpicyFunction(self.func, args=new_args, nargs=self._nargs)
+        return SpicyFunction(self.__wrapped__, args=new_args, nargs=self._nargs)
 
 
     """
